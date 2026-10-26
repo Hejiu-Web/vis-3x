@@ -140,7 +140,14 @@ const refs = [...distIndex.matchAll(/(?:src|href)="([^"]+)"/g)]
 
 const missing = []
 for (const ref of new Set(refs)) {
-  if (!existsSync(join(DIST, ref.replace(/\//g, '\\')))) missing.push(ref)
+  /**
+   * ⚠️ 这里必须用 `join()` 让 Node 自己处理分隔符，
+   * 不能手写 `ref.replace(/\//g, '\\')`——那是 Windows 专用写法，
+   * 在 Linux（GitHub Actions）上会把 `assets/index.js` 变成
+   * `assets\index.js`，导致明明存在的文件被判为缺失。
+   */
+  const abs = join(DIST, ...ref.split('/'))
+  if (!existsSync(abs)) missing.push(ref)
 }
 if (missing.length) {
   fail(`首页引用的资源缺失：\n    ${missing.join('\n    ')}`)
