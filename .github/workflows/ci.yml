@@ -14,6 +14,9 @@ jobs:
   quality:
     name: 类型检查 / 构建 / 产物校验
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vis-3x
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -28,6 +31,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: vis-3x/pnpm-lock.yaml
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
@@ -56,6 +60,9 @@ jobs:
   build-playground:
     name: 构建演示站点
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vis-3x
     steps:
       - uses: actions/checkout@v4
 
@@ -67,69 +74,59 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: vis-3x/pnpm-lock.yaml
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter vis-3x build
-      - run: pnpm --filter vis-3x-playground build
+      - name: 构建 Playground（带 Pages base）
+        env:
+          PLAYGROUND_BASE: /vis-3x/playground/
+        run: pnpm --filter vis-3x-playground build
 
-  # 文档站与门户首页位于**独立目录 / 仓库**（vis-3x-md），不在本 monorepo 内。
-  #
-  # ⚠️ 之前这里是 `working-directory: ../vis-3x-md`：GitHub Actions 的工作目录
-  # 固定为仓库根目录，`../` 会跑到 runner 的家目录之外，这个 job 必然失败，
-  # 等于「文档从未被真正校验过」。
-  #
-  # 现在的做法：检出文档站到**仓库内**的 `_docs/vis-3x-md`，
-  # 并把主库软链接成它的同级 `_docs/vis-3x`——
-  # 这正好满足 `vis-3x-md/scripts/resolve-vis3x.mjs` 对「两个项目同级」的要求。
   docs:
     name: 构建文档站与门户首页
     runs-on: ubuntu-latest
-    # 文档站仓库尚未公开 / 改名时，不要让主仓库 CI 变红
-    continue-on-error: true
     steps:
-      - name: 检出主库
-        uses: actions/checkout@v4
-        with:
-          path: _docs/vis-3x
+      - uses: actions/checkout@v4
 
-      - name: 检出文档站
-        uses: actions/checkout@v4
-        with:
-          # 可用仓库变量 DOCS_REPO 覆盖（如 owner/vis-3x-md）
-          repository: ${{ vars.DOCS_REPO || format('{0}/vis-3x-md', github.repository_owner) }}
-          path: _docs/vis-3x-md
-          token: ${{ secrets.DOCS_REPO_TOKEN || secrets.GITHUB_TOKEN }}
-
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 11
 
-      - name: 安装 Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
+          cache-dependency-path: vis-3x/pnpm-lock.yaml
 
-      - name: 构建图表库
-        working-directory: _docs/vis-3x
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
+      # 文档站通过 resolve-vis3x.mjs 解析相邻的 vis-3x 源码，
+      # 所以要先装库依赖（源码模式不需要构建产物，但装依赖更稳妥）
+      - name: 安装图表库依赖
+        working-directory: vis-3x
+        run: pnpm install --frozen-lockfile
 
       - name: 安装文档站依赖
-        working-directory: _docs/vis-3x-md
+        working-directory: vis-3x-md
         run: npm install
 
+      - name: 校验文档代码块语法
+        working-directory: vis-3x-md
+        run: npm run check:js
+
       - name: 构建文档站
-        working-directory: _docs/vis-3x-md
+        working-directory: vis-3x-md
+        env:
+          DOCS_BASE: /vis-3x/
         run: npm run build
 
       - name: 构建门户首页
-        working-directory: _docs/vis-3x-md
+        working-directory: vis-3x-md
+        env:
+          VITE_SITE_BASE: /vis-3x/
         run: npm run home:build
 
       - name: 校验产物
-        working-directory: _docs/vis-3x-md
+        working-directory: vis-3x-md
         run: |
           test -f docs/.vitepress/dist/index.html || { echo "文档站首页缺失"; exit 1; }
           test -f dist-home/index.html || { echo "门户首页缺失"; exit 1; }

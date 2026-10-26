@@ -3,6 +3,16 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
+  /**
+   * 部署基准路径
+   *
+   * GitHub Pages 项目站点部署在 `https://<user>.github.io/<repo>/` 下，
+   * 资源必须带上 `/vis-3x/` 前缀，否则线上会全部 404。
+   * 开发时保持 `/`，构建时由环境变量注入。
+   *
+   * 用法：PLAYGROUND_BASE=/vis-3x/playground/ pnpm build
+   */
+  base: process.env.PLAYGROUND_BASE ?? '/',
   plugins: [vue()],
   resolve: {
     alias: [

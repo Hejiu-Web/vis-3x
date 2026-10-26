@@ -1,5 +1,17 @@
 name: Release
 
+# 通过 changesets 管理版本并发布到 npm
+#
+# 工作方式：
+# 1. 平时：推送到 main 后，若有未消费的 changeset，自动创建一个「版本发布」PR
+# 2. 合并该 PR 后：自动构建并 `npm publish`
+#
+# 需要的仓库配置：
+# - Secret `NPM_TOKEN`：npm Granular Access Token，**必须勾选 Publish 权限**
+# - （可选）如需 2FA 账号的自动化发布，token 需允许 bypass 2FA
+#
+# 依赖 id-token: write 生成 npm provenance（包页面的「已认证」标记）
+
 on:
   push:
     branches: [main, master]
@@ -16,7 +28,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      id-token: write # 用于 npm provenance
+      id-token: write # npm provenance
+    defaults:
+      run:
+        working-directory: vis-3x
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -33,6 +48,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: vis-3x/pnpm-lock.yaml
           registry-url: https://registry.npmjs.org
 
       - name: 安装依赖
@@ -69,6 +85,7 @@ jobs:
           publish: pnpm release
           commit: 'chore: release'
           title: 'chore: release'
+          cwd: vis-3x
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

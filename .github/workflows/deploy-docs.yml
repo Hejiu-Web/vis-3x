@@ -1,0 +1,161 @@
+name: Deploy Docs
+
+# 构建文档站 + 门户首页 + Playground，并发布到 GitHub Pages
+#
+# 部署地址：https://hejiu-web.github.io/vis-3x/
+#
+#   /                  → 门户首页（落地页）
+#   /guide/...         → 文档站（VitePress）
+#   /charts/... /api/  → 文档站
+#   /playground/       → 在线演示（Vue + 3D 图表）
+#
+# ─────────────────────────────────────────────────────────────
+# 仓库结构说明
+# ─────────────────────────────────────────────────────────────
+# 两个项目在**同一个仓库**里，是同级目录：
+#
+#   vis-3x/       ← 图表库 monorepo
+#   vis-3x-md/    ← 文档站 + 门户首页
+#
+# 这正好满足 `vis-3x-md/scripts/resolve-vis3x.mjs` 对
+# 「两个项目必须保持同级」的要求，不需要任何额外 checkout。
+#
+# ⚠️ 关键：GitHub Pages **项目站点**部署在 /<repo>/ 子路径下，
+# 所以三个站点都必须设置 base 前缀，否则线上所有资源 404：
+#
+#   DOCS_BASE=/vis-3x/                 文档站
+#   VITE_SITE_BASE=/vis-3x/            门户首页
+#   PLAYGROUND_BASE=/vis-3x/playground/ 演示页
+#
+# ─────────────────────────────────────────────────────────────
+# 首次使用
+# ─────────────────────────────────────────────────────────────
+# 在仓库 Settings → Pages 中把 Source 设为 "GitHub Actions"。
+
+on:
+  push:
+    branches: [main]
+    # 只在这些文件变动时才重新部署，节省 Actions 额度
+    paths:
+      - 'vis-3x/packages/vis-3x/src/**'
+      - 'vis-3x/apps/playground/**'
+      - 'vis-3x-md/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只允许一个部署，避免并发互相覆盖
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建站点
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ---------------------------------------------------------------
+      # 1. 构建图表库（文档站与 Playground 都要依赖它的源码/产物）
+      # ---------------------------------------------------------------
+      - name: 构建图表库
+        working-directory: vis-3x
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter vis-3x build
+
+      # ---------------------------------------------------------------
+      # 2. 构建 Playground 到 /vis-3x/playground/
+      # ---------------------------------------------------------------
+      - name: 构建 Playground
+        working-directory: vis-3x
+        env:
+          PLAYGROUND_BASE: /vis-3x/playground/
+        run: pnpm --filter vis-3x-playground build
+
+      # ---------------------------------------------------------------
+      # 3. 构建文档站与门户首页
+      # ---------------------------------------------------------------
+      - name: 安装文档站依赖
+        working-directory: vis-3x-md
+        run: npm install
+
+      - name: 构建文档站
+        working-directory: vis-3x-md
+        env:
+          DOCS_BASE: /vis-3x/
+        run: npm run build
+
+      - name: 构建门户首页
+        working-directory: vis-3x-md
+        env:
+          VITE_SITE_BASE: /vis-3x/
+        run: npm run home:build
+
+      # ---------------------------------------------------------------
+      # 4. 组装：首页覆盖根 index.html，Playground 拷到 /playground/
+      # ---------------------------------------------------------------
+      - name: 组装发布目录
+        working-directory: vis-3x-md
+        env:
+          DOCS_BASE: /vis-3x/
+        run: npm run assemble
+
+      # ---------------------------------------------------------------
+      # 5. 上线前的硬校验：抓「base 配错导致资源 404」这类事故
+      # ---------------------------------------------------------------
+      - name: 校验产物
+        working-directory: vis-3x-md
+        run: |
+          set -e
+          DIST=docs/.vitepress/dist
+
+          echo "--- 关键页面 ---"
+          test -f "$DIST/index.html"              || { echo "✗ 门户首页缺失"; exit 1; }
+          test -f "$DIST/guide/quick-start.html"  || { echo "✗ 文档页缺失"; exit 1; }
+          test -f "$DIST/playground/index.html"   || { echo "✗ Playground 缺失"; exit 1; }
+          echo "  ✓ 首页 / 文档 / Playground 全部就位"
+
+          echo "--- 资源前缀（必须带 /vis-3x/）---"
+          grep -q 'src="/vis-3x/assets/' "$DIST/index.html" \
+            || { echo "✗ 首页资源缺少 /vis-3x/ 前缀"; exit 1; }
+          grep -q '/vis-3x/playground/assets/' "$DIST/playground/index.html" \
+            || { echo "✗ Playground 资源前缀错误"; exit 1; }
+          echo "  ✓ 资源前缀正确"
+
+          echo "--- 统计 ---"
+          echo "HTML 页面数: $(find "$DIST" -name '*.html' | wc -l)"
+          echo "总大小: $(du -sh "$DIST" | cut -f1)"
+
+      - name: 上传产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: vis-3x-md/docs/.vitepress/dist
+
+  deploy:
+    name: 发布到 Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -105,7 +105,17 @@ function docsFallbackPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  /**
+   * 资源基准路径
+   *
+   * 首页最终部署在 GitHub Pages 的 `/vis-3x/` 根路径下，
+   * assets 必须带这个前缀，否则线上 404。
+   *
+   * - `vite`（开发）：`/`，避免开发时路径错乱
+   * - `vite build`（构建）：`/vis-3x/`，可用 VITE_SITE_BASE 覆盖
+   */
+  base: command === 'build' ? (process.env.VITE_SITE_BASE ?? '/vis-3x/') : '/',
   plugins: [vue(), docsFallbackPlugin()],
   resolve: {
     alias: vis3xAlias(),
@@ -137,4 +147,4 @@ export default defineConfig({
     port: 5180,
     open: true,
   },
-})
+}))
