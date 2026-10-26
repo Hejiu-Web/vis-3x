@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 发布到 npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write # 用于 npm provenance
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查
+        run: pnpm typecheck
+
+      - name: 构建
+        run: pnpm build
+
+      - name: 校验产物
+        run: node packages/vis-3x/test/dist-smoke.mjs
+
+      - name: 校验 package.json 导出路径
+        run: node scripts/check-exports.mjs
+
+      # 发布前的最后一道闸：真实消费者验证
+      #
+      # 在临时项目里 `npm install` 本地 tarball，再用 tsc
+      # （bundler / node16 两种解析模式）与 vite build 验证。
+      # 只要它失败就不应该发布——历史上最容易出事的「装完类型全挂」
+      # 一类问题（d.ts 缺扩展名、类型没从根入口透出、style.css 找不到声明）
+      # 都能在这里被拦住。
+      - name: 真实消费者验证
+        run: node scripts/verify-consumer.mjs
+
+      # 若存在 changeset，则先开一个「版本发布」PR；
+      # 该 PR 被合并后，下面的 publish 才会真正生效。
+      - name: 创建发布 PR 或发布
+        uses: changesets/action@v1
+        with:
+          version: pnpm version-packages
+          publish: pnpm release
+          commit: 'chore: release'
+          title: 'chore: release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

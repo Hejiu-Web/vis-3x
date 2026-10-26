@@ -1,0 +1,137 @@
+/**
+ * 门户首页全局样式
+ *
+ * 单一强调色（#4f8cff）贯穿全站，统一圆角体系。
+ */
+
+:root {
+  --vx-accent: #4f8cff;
+  --vx-cyan: #22d3ee;
+  --vx-bg: #070b14;
+  --vx-bg-alt: #0b1120;
+  --vx-panel: #0d1424;
+  --vx-border: #1e293b;
+
+  --vx-radius-card: 12px;
+  --vx-radius-btn: 8px;
+  --vx-radius-inline: 4px;
+
+  /* 字体栈：优先系统 UI 字体，中文回退到苹方 / 微软雅黑 */
+  --vx-font:
+    'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --vx-font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--vx-bg);
+  color: #cbd5e1;
+  font-family: var(--vx-font);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* 全局背景：与文档站保持一致的深色氛围 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1200px 700px at 12% -8%, rgba(79, 140, 255, 0.13), transparent 62%),
+    radial-gradient(900px 520px at 92% 4%, rgba(34, 211, 238, 0.09), transparent 58%),
+    var(--vx-bg);
+  pointer-events: none;
+}
+
+#app {
+  min-height: 100dvh;
+}
+
+a {
+  color: inherit;
+}
+
+/* 焦点可见性：键盘用户必须能看到焦点 */
+:focus-visible {
+  outline: 2px solid var(--vx-accent);
+  outline-offset: 2px;
+  border-radius: var(--vx-radius-inline);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* --------------------------------- 滚动条 -------------------------------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 5px;
+  border: 2px solid var(--vx-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* --------------------------- 滚动进场通用类 ----------------------------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------ 动效降级 -------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

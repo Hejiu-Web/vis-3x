@@ -1,0 +1,293 @@
+/**
+ * vis-3x 文档站视觉定制
+ *
+ * 设计取向：dark tech / 数据可视化
+ * - 深蓝黑底 + 青蓝强调色（与图表库默认调色板一致）
+ * - 单一强调色贯穿全站（Color Consistency Lock）
+ * - 统一圆角体系：卡片 12px / 按钮 8px / 行内代码 4px（Shape Consistency Lock）
+ */
+
+:root {
+  /* ------------------------------ 品牌色 ------------------------------ */
+  --vx-accent: #4f8cff;
+  --vx-accent-soft: rgba(79, 140, 255, 0.14);
+  --vx-accent-line: rgba(79, 140, 255, 0.35);
+  --vx-cyan: #22d3ee;
+  --vx-mint: #34d399;
+
+  /* 覆盖 VitePress 品牌色 */
+  --vp-c-brand-1: #4f8cff;
+  --vp-c-brand-2: #6ba0ff;
+  --vp-c-brand-3: #3d7af0;
+  --vp-c-brand-soft: rgba(79, 140, 255, 0.14);
+
+  /* 圆角体系 */
+  --vp-border-radius: 8px;
+  --vx-radius-card: 12px;
+  --vx-radius-btn: 8px;
+  --vx-radius-inline: 4px;
+}
+
+/* ------------------------------ 深色模式（默认） ------------------------------ */
+
+.dark {
+  --vp-c-bg: #070b14;
+  --vp-c-bg-alt: #0b1120;
+  --vp-c-bg-soft: #0d1424;
+  --vp-c-bg-elv: #111a2e;
+
+  --vp-c-divider: #1e293b;
+  --vp-c-border: #1e293b;
+  --vp-c-gutter: #0a0f1c;
+
+  --vp-c-text-1: #e2e8f0;
+  --vp-c-text-2: #94a3b8;
+  --vp-c-text-3: #64748b;
+}
+
+/* --------------------------------- 导航栏 --------------------------------- */
+
+.VPNav {
+  backdrop-filter: blur(12px);
+}
+
+.VPNavBar {
+  background: rgba(7, 11, 20, 0.72) !important;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.VPNavBarTitle .title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(100deg, #e2e8f0 30%, var(--vx-accent) 70%, var(--vx-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --------------------------------- 侧边栏 --------------------------------- */
+
+.VPSidebar {
+  background: var(--vp-c-bg-alt) !important;
+  border-right: 1px solid var(--vp-c-divider);
+}
+
+.VPSidebarItem.level-0 > .item > .text {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--vp-c-text-1);
+}
+
+.VPSidebarItem.is-active > .item .link .text,
+.VPSidebarItem.is-active > .item .text {
+  color: var(--vx-accent) !important;
+  font-weight: 600;
+}
+
+/* ------------------------------- 正文排版 -------------------------------- */
+
+.vp-doc h1 {
+  letter-spacing: -0.025em;
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.vp-doc h2 {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--vp-c-divider);
+  letter-spacing: -0.015em;
+}
+
+.vp-doc h3 {
+  margin-top: 32px;
+  letter-spacing: -0.01em;
+}
+
+.vp-doc p,
+.vp-doc li {
+  line-height: 1.75;
+}
+
+/* 代码块：与库的深色风格统一 */
+.vp-doc div[class*='language-'] {
+  border-radius: var(--vx-radius-card);
+  border: 1px solid var(--vp-c-divider);
+  background: #0b1120 !important;
+}
+
+.vp-doc [class*='language-'] code {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* 行内代码：用品牌色弱化底 */
+.vp-doc :not(pre) > code {
+  background: var(--vx-accent-soft);
+  color: #a7c8ff;
+  border-radius: var(--vx-radius-inline);
+  padding: 2px 6px;
+  font-size: 0.875em;
+  font-weight: 500;
+}
+
+/* 表格 */
+.vp-doc table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: var(--vx-radius-card);
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  margin: 20px 0;
+}
+
+.vp-doc th {
+  background: var(--vp-c-bg-soft);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.vp-doc th,
+.vp-doc td {
+  border: none;
+  border-bottom: 1px solid var(--vp-c-divider);
+  padding: 10px 14px;
+}
+
+.vp-doc tr:last-child td {
+  border-bottom: none;
+}
+
+.vp-doc tr:nth-child(2n) {
+  background: transparent;
+}
+
+/* -------------------------------- 自定义块 ------------------------------- */
+
+.vp-doc .custom-block {
+  border-radius: var(--vx-radius-card);
+  border-width: 1px;
+  border-left-width: 3px;
+}
+
+.vp-doc .custom-block.tip {
+  border-color: var(--vx-accent-line);
+  background: var(--vx-accent-soft);
+}
+
+.vp-doc .custom-block.warning {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.09);
+}
+
+.vp-doc .custom-block.danger {
+  border-color: rgba(251, 113, 133, 0.35);
+  background: rgba(251, 113, 133, 0.09);
+}
+
+.vp-doc .custom-block.info {
+  border-color: var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+
+/* --------------------------------- 按钮 ---------------------------------- */
+
+.VPButton.brand {
+  background: var(--vx-accent) !important;
+  border-color: var(--vx-accent) !important;
+  color: #fff !important;
+  border-radius: var(--vx-radius-btn);
+  font-weight: 600;
+}
+
+.VPButton.brand:hover {
+  background: #6ba0ff !important;
+  border-color: #6ba0ff !important;
+}
+
+.VPButton.alt {
+  border-radius: var(--vx-radius-btn);
+  border-color: var(--vp-c-divider);
+  color: var(--vp-c-text-1);
+  background: transparent;
+}
+
+.VPButton.alt:hover {
+  border-color: var(--vx-accent-line);
+  background: var(--vx-accent-soft);
+}
+
+/* --------------------------------- 首页 ---------------------------------- */
+
+.VPHero .name,
+.VPHero .text {
+  letter-spacing: -0.03em;
+}
+
+.VPHero .tagline {
+  color: var(--vp-c-text-2);
+  line-height: 1.7;
+  max-width: 46ch;
+}
+
+.VPFeature {
+  border-radius: var(--vx-radius-card);
+  border: 1px solid var(--vp-c-divider);
+  background: linear-gradient(180deg, var(--vp-c-bg-soft), var(--vp-c-bg-alt));
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.VPFeature:hover {
+  border-color: var(--vx-accent-line);
+  transform: translateY(-2px);
+}
+
+.VPFeature .icon {
+  background: var(--vx-accent-soft) !important;
+  border-radius: var(--vx-radius-btn);
+}
+
+/* ------------------------------- 代码组标签 ------------------------------ */
+
+.vp-code-group .tabs label {
+  border-radius: var(--vx-radius-btn) var(--vx-radius-btn) 0 0;
+}
+
+/* ------------------------------ 滚动条美化 ------------------------------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 5px;
+  border: 2px solid var(--vp-c-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ---------------------------- 动效降级支持 ------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist",
+    // 发布包里不含 src/，声明文件的 sourcemap 只会指向不存在的路径。
+    // 关掉它，同时避免 .d.ts 末尾带上 //# sourceMappingURL 注释
+    // （TS 在找不到对应 .map 时不会报错，但编辑器会静默失效，容易误导）。
+    "declarationMap": false,
+    "allowImportingTsExtensions": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "exclude": ["node_modules", "dist"]
+}

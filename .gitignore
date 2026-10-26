@@ -1,0 +1,41 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 构建产物
+dist/
+dist-home/
+*.tsbuildinfo
+
+# VitePress（文档站）产物与缓存
+#
+# 注意：写成 `docs/.vitepress/cache/` 是**匹配不到**的，
+# 因为带斜杠的模式是相对仓库根的路径；而文档站实际位于
+# `vis-3x-md/docs/.vitepress/`。用 `**/` 前缀才能覆盖任意层级。
+**/.vitepress/dist/
+**/.vitepress/cache/
+
+# 临时文件
+.tmp/
+*.log
+npm-debug.log*
+
+# 编辑器
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# 系统
+Thumbs.db
+.DS_Store
+
+# 测试产物
+coverage/
+.verify/
+.verify-consumer/
+
+# 本地压缩包（构建/备份产物，不应入库）
+*.rar
+*.7z
+*.zip

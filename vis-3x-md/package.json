@@ -1,0 +1,32 @@
+{
+  "name": "vis-3x-md",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "vis-3x 官方文档与门户站点",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "home:dev": "vite --config vite.home.config.ts",
+    "home:build": "vite build --config vite.home.config.ts",
+    "assemble": "node scripts/assemble.mjs",
+    "build:all": "npm run build && npm run home:build",
+    "build:deploy": "npm run build && npm run home:build && npm run assemble",
+    "check:js": "node scripts/check-js-blocks.mjs"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "~5.6.3",
+    "vite": "^6.0.7",
+    "vitepress": "^1.6.3"
+  },
+  "comment": {
+    "vis-3x": "本目录不在 monorepo 内，vis-3x 通过 vite.home.config.ts 的 alias 解析：优先用 ../vis-3x/packages/vis-3x/src（热更新），否则用 node_modules/vis-3x（已安装的包）。文档站不依赖 vis-3x 源码，只消费包。"
+  }
+}

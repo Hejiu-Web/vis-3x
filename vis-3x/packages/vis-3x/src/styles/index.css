@@ -1,0 +1,299 @@
+/**
+ * vis-3x — 基础样式
+ *
+ * 只包含必要的结构样式；所有颜色/字体都可以通过配置项或 CSS 变量覆盖。
+ */
+
+.vt-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vt-container canvas {
+  display: block;
+  outline: none;
+}
+
+/* ---------------------------------- 标签 --------------------------------- */
+
+.vt-label {
+  position: absolute;
+  white-space: pre-line;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(
+    --vt-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    sans-serif
+  );
+  will-change: transform;
+}
+
+/* --------------------------------- 提示框 --------------------------------- */
+
+.vt-tooltip {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: var(
+    --vt-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif
+  );
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--vt-tooltip-color, #f1f5f9);
+  background: var(--vt-tooltip-bg, rgba(15, 23, 42, 0.92));
+  border: 1px solid var(--vt-tooltip-border, rgba(148, 163, 184, 0.22));
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.36),
+    0 2px 6px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.15s ease;
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
+  max-width: 280px;
+}
+
+.vt-tooltip__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.vt-tooltip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.vt-tooltip__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.vt-tooltip__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.vt-tooltip__label {
+  opacity: 0.7;
+}
+
+/* ---------------------------------- 图例 --------------------------------- */
+
+.vt-legend {
+  position: absolute;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 6px 10px;
+  font-family: var(
+    --vt-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif
+  );
+  font-size: 12px;
+  border-radius: 8px;
+  user-select: none;
+  max-width: calc(100% - 24px);
+}
+
+.vt-legend--top {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  justify-content: center;
+}
+.vt-legend--bottom {
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  justify-content: center;
+}
+.vt-legend--top-left {
+  top: 10px;
+  left: 12px;
+}
+.vt-legend--top-right {
+  top: 10px;
+  right: 12px;
+}
+.vt-legend--bottom-left {
+  bottom: 10px;
+  left: 12px;
+}
+.vt-legend--bottom-right {
+  bottom: 10px;
+  right: 12px;
+}
+.vt-legend--left {
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+.vt-legend--right {
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+
+.vt-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+  transition: opacity 0.2s ease;
+}
+
+.vt-legend__item--clickable {
+  cursor: pointer;
+}
+
+.vt-legend__item--clickable:hover {
+  opacity: 0.78;
+}
+
+.vt-legend__item--hidden {
+  opacity: 0.38;
+  text-decoration: line-through;
+}
+
+.vt-legend__icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.vt-legend__icon--circle {
+  border-radius: 50%;
+}
+
+/* --------------------------------- 标题 ---------------------------------- */
+
+.vt-title {
+  position: absolute;
+  z-index: 40;
+  pointer-events: none;
+  font-family: var(
+    --vt-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif
+  );
+}
+
+.vt-title__text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--vt-title-color, #e2e8f0);
+}
+
+.vt-title__subtext {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--vt-subtitle-color, #94a3b8);
+  margin-top: 2px;
+}
+
+/* -------------------------------- 加载遮罩 -------------------------------- */
+
+.vt-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--vt-loading-bg, rgba(8, 13, 24, 0.55));
+  backdrop-filter: blur(2px);
+  font-family: var(
+    --vt-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif
+  );
+  font-size: 12px;
+  color: var(--vt-loading-color, #94a3b8);
+}
+
+.vt-loading__spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid var(--vt-loading-track, rgba(148, 163, 184, 0.22));
+  border-top-color: var(--vt-loading-accent, #4f8cff);
+  animation: vt-spin 0.85s linear infinite;
+}
+
+@keyframes vt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* -------------------------------- 空状态 --------------------------------- */
+
+.vt-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(
+    --vt-font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif
+  );
+  font-size: 13px;
+  color: var(--vt-empty-color, #64748b);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-loading__spinner {
+    animation-duration: 2.4s;
+  }
+}

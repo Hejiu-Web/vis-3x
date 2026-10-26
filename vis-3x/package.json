@@ -1,0 +1,32 @@
+{
+  "name": "vis-3x-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "vis-3x 3D 图表库 monorepo — 基于 Vue 3 + TypeScript + Three.js",
+  "license": "MIT",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter vis-3x-playground dev",
+    "build": "pnpm --filter vis-3x build",
+    "build:all": "pnpm -r --filter=./packages/* build",
+    "typecheck": "pnpm --filter vis-3x typecheck",
+    "clean": "pnpm -r exec rimraf dist node_modules/.tmp",
+    "verify": "node packages/vis-3x/test/dist-smoke.mjs && node scripts/check-exports.mjs",
+    "verify:consumer": "node scripts/verify-consumer.mjs",
+    "preflight": "pnpm build && pnpm verify && pnpm verify:consumer",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build:all && changeset publish",
+    "release:dry": "pnpm --filter vis-3x publish:dry"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.11",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.6.3"
+  }
+}

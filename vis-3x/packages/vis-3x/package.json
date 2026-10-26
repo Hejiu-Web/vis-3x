@@ -1,0 +1,149 @@
+{
+  "name": "vis-3x",
+  "version": "0.1.0",
+  "private": false,
+  "description": "vis-3x — 基于 Vue 3 + TypeScript + Three.js 的 3D 数据可视化图表库。支持 Vue 组件、组合式 API 与纯 JavaScript 命令式调用，并提供 ECharts 风格的灵活自定义图表扩展能力。",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "hejiu45",
+    "url": "https://github.com/Hejiu-Web"
+  },
+  "homepage": "https://github.com/Hejiu-Web/vis-3x#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hejiu-Web/vis-3x.git",
+    "directory": "packages/vis-3x"
+  },
+  "bugs": {
+    "url": "https://github.com/Hejiu-Web/vis-3x/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "three",
+    "threejs",
+    "chart",
+    "charts",
+    "3d",
+    "3d-charts",
+    "data-visualization",
+    "visualization",
+    "typescript",
+    "webgl",
+    "bar3d",
+    "surface3d",
+    "scatter3d",
+    "vis-3x",
+    "3d图表",
+    "数据可视化"
+  ],
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js",
+      "require": "./dist/core/index.cjs"
+    },
+    "./charts": {
+      "types": "./dist/charts/index.d.ts",
+      "import": "./dist/charts/index.js",
+      "require": "./dist/charts/index.cjs"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js",
+      "require": "./dist/components/index.cjs"
+    },
+    "./composables": {
+      "types": "./dist/composables/index.d.ts",
+      "import": "./dist/composables/index.js",
+      "require": "./dist/composables/index.cjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "require": "./dist/utils/index.cjs"
+    },
+    "./adapters": {
+      "types": "./dist/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js",
+      "require": "./dist/adapters/index.cjs"
+    },
+    "./presets": {
+      "types": "./dist/presets/index.d.ts",
+      "import": "./dist/presets/index.js",
+      "require": "./dist/presets/index.cjs"
+    },
+    "./style.css": {
+      "types": "./dist/style.css.d.ts",
+      "default": "./dist/style.css"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && npm run build:types",
+    "build:js": "vite build",
+    "build:types": "vue-tsc --emitDeclarationOnly -p tsconfig.build.json && node scripts/strip-dts-css.mjs && node scripts/fix-dts-extensions.mjs",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.build.json",
+    "prepublishOnly": "pnpm run build",
+    "publish:dry": "pnpm run build && npm publish --dry-run --access public",
+    "publish:real": "pnpm run build && npm publish --access public",
+    "pack:info": "npm pack --dry-run",
+    "clean": "rimraf dist node_modules/.tmp"
+  },
+  "peerDependencies": {
+    "three": ">=0.160.0",
+    "vue": ">=3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/three": "^0.160.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "rimraf": "^6.0.1",
+    "terser": "^5.37.0",
+    "three": "^0.160.0",
+    "typescript": "~5.6.3",
+    "vite": "^6.0.7",
+    "vue": "^3.5.13",
+    "vue-tsc": "^2.2.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

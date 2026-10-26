@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: 类型检查 / 构建 / 产物校验
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查
+        run: pnpm typecheck
+
+      - name: 构建库
+        run: pnpm build
+
+      - name: 校验构建产物
+        run: node packages/vis-3x/test/dist-smoke.mjs
+
+      - name: 校验 package.json 导出路径
+        run: node scripts/check-exports.mjs
+
+      # 把真正的 tarball 装进一个干净项目，用 tsc（bundler + node16 两种解析）
+      # 与 vite build 验证「装完能不能用」。
+      # 这一步能抓住 dist-smoke 抓不到的问题：
+      #   - d.ts 缺 .js 扩展名（node16 下全部类型声明失效）
+      #   - 根入口 export type * 导致类型缺失
+      #   - style.css 在 noUncheckedSideEffectImports 下报 TS2307
+      - name: 真实消费者验证（tarball + tsc + vite build）
+        run: node scripts/verify-consumer.mjs
+
+  build-playground:
+    name: 构建演示站点
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter vis-3x build
+      - run: pnpm --filter vis-3x-playground build
+
+  # 文档站与门户首页位于**独立目录 / 仓库**（vis-3x-md），不在本 monorepo 内。
+  #
+  # ⚠️ 之前这里是 `working-directory: ../vis-3x-md`：GitHub Actions 的工作目录
+  # 固定为仓库根目录，`../` 会跑到 runner 的家目录之外，这个 job 必然失败，
+  # 等于「文档从未被真正校验过」。
+  #
+  # 现在的做法：检出文档站到**仓库内**的 `_docs/vis-3x-md`，
+  # 并把主库软链接成它的同级 `_docs/vis-3x`——
+  # 这正好满足 `vis-3x-md/scripts/resolve-vis3x.mjs` 对「两个项目同级」的要求。
+  docs:
+    name: 构建文档站与门户首页
+    runs-on: ubuntu-latest
+    # 文档站仓库尚未公开 / 改名时，不要让主仓库 CI 变红
+    continue-on-error: true
+    steps:
+      - name: 检出主库
+        uses: actions/checkout@v4
+        with:
+          path: _docs/vis-3x
+
+      - name: 检出文档站
+        uses: actions/checkout@v4
+        with:
+          # 可用仓库变量 DOCS_REPO 覆盖（如 owner/vis-3x-md）
+          repository: ${{ vars.DOCS_REPO || format('{0}/vis-3x-md', github.repository_owner) }}
+          path: _docs/vis-3x-md
+          token: ${{ secrets.DOCS_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 构建图表库
+        working-directory: _docs/vis-3x
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: 安装文档站依赖
+        working-directory: _docs/vis-3x-md
+        run: npm install
+
+      - name: 构建文档站
+        working-directory: _docs/vis-3x-md
+        run: npm run build
+
+      - name: 构建门户首页
+        working-directory: _docs/vis-3x-md
+        run: npm run home:build
+
+      - name: 校验产物
+        working-directory: _docs/vis-3x-md
+        run: |
+          test -f docs/.vitepress/dist/index.html || { echo "文档站首页缺失"; exit 1; }
+          test -f dist-home/index.html || { echo "门户首页缺失"; exit 1; }
+          echo "文档站页面数: $(find docs/.vitepress/dist -name '*.html' | wc -l)"

@@ -1,0 +1,122 @@
+name: Deploy Docs
+
+# 构建文档站与门户首页并发布到 GitHub Pages
+#
+# 部署结果：
+#   /          → 门户首页（落地页）
+#   /guide/... → 文档站
+#
+# ⚠️ 重要说明
+#
+# 文档站（vis-3x-md）与本仓库存放在**不同的目录 / 仓库**中。
+#
+# 注意 GitHub Actions 的工作目录固定为**仓库根目录**（`$GITHUB_WORKSPACE`），
+# 任何 `working-directory: ../xxx` 都会跑到 runner 的家目录之外并直接失败。
+# 因此这里统一检出到仓库内的 `_docs/` 子目录：
+#
+#   _docs/vis-3x       ← 主库（图表库源码）
+#   _docs/vis-3x-md    ← 文档站
+#
+# 两者同级，正好满足 `vis-3x-md/scripts/resolve-vis3x.mjs`
+# 对「两个项目必须保持同级目录」的解析要求。
+#
+# 首次使用需要在仓库 Settings → Pages 中把 Source 设为 "GitHub Actions"。
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建站点
+    runs-on: ubuntu-latest
+    steps:
+      # 主库（图表库源码）
+      - name: 检出主库
+        uses: actions/checkout@v4
+        with:
+          path: _docs/vis-3x
+
+      # 文档站：与主库同级检出（_docs/ 下）
+      - name: 检出文档站
+        uses: actions/checkout@v4
+        with:
+          # 用仓库变量 DOCS_REPO 覆盖，默认取当前仓库所属账号下的 vis-3x-md
+          repository: ${{ vars.DOCS_REPO || format('{0}/vis-3x-md', github.repository_owner) }}
+          path: _docs/vis-3x-md
+          token: ${{ secrets.DOCS_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 构建图表库
+        working-directory: _docs/vis-3x
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter vis-3x build
+
+      - name: 安装文档站依赖
+        working-directory: _docs/vis-3x-md
+        run: npm install
+
+      - name: 构建文档站
+        working-directory: _docs/vis-3x-md
+        run: npm run build
+
+      - name: 构建门户首页
+        working-directory: _docs/vis-3x-md
+        run: npm run home:build
+
+      - name: 组装发布目录
+        working-directory: _docs/vis-3x-md
+        run: |
+          set -e
+          DIST=docs/.vitepress/dist
+          PORTAL=dist-home
+
+          # 门户首页占据站点根路径，文档站保留在 guide/ charts/ api/ 等子路径
+          # 只覆盖 index.html 与 assets/，不要递归覆盖整个目录，
+          # 否则文档站的页面会被清掉
+          cp "$PORTAL/index.html" "$DIST/index.html"
+          cp -r "$PORTAL/assets/." "$DIST/assets/"
+
+          echo "--- 校验组装结果 ---"
+          grep -q '<div id="app"></div>' "$DIST/index.html" \
+            || { echo "根路径不是门户首页"; exit 1; }
+          test -f "$DIST/guide/quick-start.html" \
+            || { echo "文档页缺失"; exit 1; }
+          echo "HTML 页面数: $(find "$DIST" -name '*.html' | wc -l)"
+
+      - name: 上传产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _docs/vis-3x-md/docs/.vitepress/dist
+
+  deploy:
+    name: 发布到 Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4
