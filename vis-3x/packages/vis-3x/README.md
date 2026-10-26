@@ -11,8 +11,7 @@
   <img src="https://img.shields.io/badge/TypeScript%20%7C%20JavaScript-both-3178c6" alt="ts-js" />
 </p>
 
-> [!TIP]
-> **TypeScript 与 JavaScript 都能用**
+> **💡 Tip：TypeScript 与 JavaScript 都能用**
 >
 > 库用 TypeScript 编写，但**不要求使用者写 TypeScript**——类型标注只在编译期生效，
 > 去掉它就是合法的 JavaScript。文档里每个示例都提供 TS / JS 两种写法。
@@ -174,7 +173,8 @@ const { chart, isReady, exportImage, resetCamera } = useVisChart({ container, op
 
 ### 方式五：CDN（import map）
 
-> [!IMPORTANT]
+> **⚠️ 重要：浏览器里请用 import map，不要用 `<script src>` 直引**
+>
 > `three` 自 0.150 起是**纯 ESM 包**，官方不再提供 `build/three.min.js` 这类浏览器全局
 > 构建，因此 `vis-3x` **不发布 UMD 产物**（`<script src=".../index.umd.js">` 的组合
 > 在运行时会报 `THREE.WebGLRenderer is not a constructor`）。
