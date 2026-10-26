@@ -69,7 +69,7 @@ jobs:
       - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       # 环境诊断：setup 阶段失败时，这里能打印出真实原因
       - name: 环境诊断
@@ -89,7 +89,21 @@ jobs:
       # ---------------------------------------------------------------
       - name: 安装图表库依赖
         working-directory: vis-3x
-        run: pnpm install --frozen-lockfile
+        run: |
+          echo "=== 环境 ==="
+          pnpm -v
+          node -v
+          echo "=== 安装 ==="
+          if ! pnpm install --frozen-lockfile --reporter=append-only; then
+            echo "::error::pnpm install 失败"
+            echo "--- pnpm 配置 ---"
+            pnpm config list || true
+            echo "--- workspace ---"
+            cat pnpm-workspace.yaml || true
+            echo "--- lockfile 头部 ---"
+            head -5 pnpm-lock.yaml || true
+            exit 1
+          fi
 
       - name: 构建 JS 产物（vite）
         working-directory: vis-3x
