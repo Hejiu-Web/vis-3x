@@ -78,20 +78,26 @@ jobs:
           echo "npm:  $(npm -v)"
           echo "pnpm: $(pnpm -v 2>&1 || echo '<不可用>')"
           echo "pnpm path: $(command -v pnpm || echo '<未找到>')"
-          echo "which corepack: $(command -v corepack || echo '<未找到>')"
-          echo "--- pnpm-workspace ---"
-          cat vis-3x/pnpm-workspace.yaml || true
           echo "--- packageManager ---"
           node -p "require('./vis-3x/package.json').packageManager"
 
       # ---------------------------------------------------------------
       # 1. 构建图表库（文档站与 Playground 都要依赖它的源码/产物）
+      #
+      #   注意这里**逐条**执行，而不是一条 `pnpm build`：
+      #   一旦失败，从日志能直接看出是 install / vite / vue-tsc 哪一步挂的。
       # ---------------------------------------------------------------
-      - name: 构建图表库
+      - name: 安装图表库依赖
         working-directory: vis-3x
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm --filter vis-3x build
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建 JS 产物（vite）
+        working-directory: vis-3x
+        run: pnpm --filter vis-3x run build:js
+
+      - name: 生成类型声明（vue-tsc）
+        working-directory: vis-3x
+        run: pnpm --filter vis-3x run build:types
 
       # ---------------------------------------------------------------
       # 2. 构建 Playground 到 /vis-3x/playground/
