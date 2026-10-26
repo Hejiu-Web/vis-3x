@@ -63,13 +63,24 @@ jobs:
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 11
 
       - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # 环境诊断：setup 阶段失败时，这里能打印出真实原因
+      - name: 环境诊断
+        run: |
+          echo "node: $(node -v)"
+          echo "npm:  $(npm -v)"
+          echo "pnpm: $(pnpm -v 2>&1 || echo '<不可用>')"
+          echo "pnpm path: $(command -v pnpm || echo '<未找到>')"
+          echo "which corepack: $(command -v corepack || echo '<未找到>')"
+          echo "--- pnpm-workspace ---"
+          cat vis-3x/pnpm-workspace.yaml || true
+          echo "--- packageManager ---"
+          node -p "require('./vis-3x/package.json').packageManager"
 
       # ---------------------------------------------------------------
       # 1. 构建图表库（文档站与 Playground 都要依赖它的源码/产物）
